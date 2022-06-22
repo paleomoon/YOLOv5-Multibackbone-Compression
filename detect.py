@@ -4,6 +4,7 @@ Run inference on images, videos, directories, streams, etc.
 
 Usage:
     $ python path/to/detect.py --source path/to/img.jpg --weights yolov5s.pt --img 640
+    python detect.py --source data/images/test.jpg --weights runs/train/yolov5s_hat/weights/best.pt --img 512
 """
 
 import argparse
@@ -146,9 +147,11 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
         dt[0] += t2 - t1
 
         # Inference
+        loop = 1
         if pt:
             visualize = increment_path(save_dir / Path(path).stem, mkdir=True) if visualize else False
-            pred = model(img, augment=augment, visualize=visualize)[0]
+            for _ in range(loop):
+                pred = model(img, augment=augment, visualize=visualize)[0]
         elif onnx:
             if dnn:
                 net.setInput(img)
@@ -177,7 +180,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
             pred[..., 3] *= imgsz[0]  # h
             pred = torch.tensor(pred)
         t3 = time_sync()
-        dt[1] += t3 - t2
+        dt[1] += (t3 - t2) / loop
 
         # NMS
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)

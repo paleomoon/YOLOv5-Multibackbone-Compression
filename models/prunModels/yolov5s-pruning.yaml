@@ -1,20 +1,20 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 
 # Parameters
-nc: 10  # number of classes
+nc: 2  # number of classes
 depth_multiple: 0.33  # model depth multiple
 width_multiple: 0.50  # layer channel multiple
 anchors:
-  - [10,13, 16,30, 33,23]  # P3/8
-  - [30,61, 62,45, 59,119]  # P4/16
-  - [116,90, 156,198, 373,326]  # P5/32
+  - [3,4,  4,8,  7,6]  # P3/8
+  - [7,12,  15,9,  12,18]  # P4/16
+  - [27,15,  23,29,  46,36]  # P5/32
 
 # YOLOv5 v6.0 backbone
 backbone:
   # [from, number, module, args]
-  [[-1, 1, Conv, [64, 6, 2, 2, 1, True, 1.0]],                      # 0-P1/2
-   [-1, 1, Conv, [128, 3, 2, None, 1, True, 1.0]],                  # 1-P2/4
-   [-1, 3, C3, [128, True, 1, [0.5, 0.5], [1.0, 1.0, 1.0], 1.0]],   # [cv1, cv2], [bottle-cv1, ..., bottlen-cv1], cv3
+  [[-1, 1, Conv, [64, 6, 2, 2, 1, True, 1.0]], # [output channel,  kernel, stride, padding， groups, act, (SPP, SPPF, MBConvBlock)的输出通道倍数]，# 0-P1/2
+   [-1, 1, Conv, [128, 3, 2, None, 1, True, 1.0]], # padding=None 这后面的参数都是默认的                 # 1-P2/4
+   [-1, 3, C3, [128, True, 1, [0.5, 0.5], [1.0, 1.0, 1.0], 1.0]],   # [cv1, cv2], [bottle-cv1, ..., bottlen-cv1], cv3，默认的
    [-1, 1, Conv, [256, 3, 2, None, 1, True, 1.0]],                  # 3-P3/8
    [-1, 6, C3, [256, True, 1, [0.5, 0.5], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 1.0]],
    [-1, 1, Conv, [512, 3, 2, None, 1, True, 1.0]],                  # 5-P4/16
