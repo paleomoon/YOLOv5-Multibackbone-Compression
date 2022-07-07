@@ -12,13 +12,13 @@ from utils.general import make_divisible
 
 def parse_module_defs(d):
     CBL_idx = []  # Conv + BN + LeakyReLU
-    ignore_idx  =[]
+    ignore_idx  =[] # 该函数主要关注不剪枝的层
 
     anchors, nc, gd, gw = d['anchors'], d['nc'], d['depth_multiple'], d['width_multiple']
     na = (len(anchors[0]) // 2) if isinstance(anchors, list) else anchors  # number of anchors
     no = na * (nc + 5)  # number of outputs = anchors * (classes + 5)
     fromlayer = []  # last module bn layer name
-    from_to_map = {}
+    from_to_map = {} # key:to value:from
 
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):
         m = eval(m) if isinstance(m, str) else m  # eval strings
@@ -35,15 +35,15 @@ def parse_module_defs(d):
             CBL_idx.append(named_m_bn)
             if i > 0:
                 from_to_map[named_m_bn] = fromlayer[f]
-            fromlayer.append(named_m_bn)
+            fromlayer.append(named_m_bn) # add this layer
         elif m is C3:
             named_m_cv1_bn = named_m_base + ".cv1.bn"
             named_m_cv2_bn = named_m_base + ".cv2.bn"
             named_m_cv3_bn = named_m_base + ".cv3.bn"
-            from_to_map[named_m_cv1_bn] = fromlayer[f]
+            from_to_map[named_m_cv1_bn] = fromlayer[f] # cv1 cv2 from last layer
             from_to_map[named_m_cv2_bn] = fromlayer[f]
-            fromlayer.append(named_m_cv3_bn)
-            c3fromlayer = [named_m_cv1_bn]
+            fromlayer.append(named_m_cv3_bn) # add this layer
+            c3fromlayer = [named_m_cv1_bn] # bottleneck from layer,cv1后接bottleneck
 
             # CBL_idx.append(named_m_cv1_bn)
             ignore_idx.append(named_m_cv1_bn)
@@ -52,15 +52,15 @@ def parse_module_defs(d):
             for j in range(n):
                 named_m_bottle_cv1_bn = named_m_base + ".m.{}.cv1.bn".format(j)
                 named_m_bottle_cv2_bn = named_m_base + ".m.{}.cv2.bn".format(j)
-                from_to_map[named_m_bottle_cv1_bn] = c3fromlayer[j]
+                from_to_map[named_m_bottle_cv1_bn] = c3fromlayer[j] # bottleneck：cv1 cv2 shortcut
                 from_to_map[named_m_bottle_cv2_bn] = named_m_bottle_cv1_bn
-                c3fromlayer.append(named_m_bottle_cv2_bn)
+                c3fromlayer.append(named_m_bottle_cv2_bn) # ?
                 CBL_idx.append(named_m_bottle_cv1_bn)
                 # ignore_idx.append(named_m_bottle_cv1_bn)
                 ignore_idx.append(named_m_bottle_cv2_bn)  # not prune shortcut
             from_to_map[named_m_cv3_bn] = [c3fromlayer[-1], named_m_cv2_bn]
         elif m is Focus:
-            named_m_bn = named_m_base+'.conv.bn'
+            named_m_bn = named_m_base+'.conv.bn' # focus最后是一个卷积
             CBL_idx.append(named_m_bn)
             fromlayer.append(named_m_bn)
         elif m is SPP:
@@ -69,7 +69,7 @@ def parse_module_defs(d):
             CBL_idx.append(named_m_cv1_bn)
             ignore_idx.append(named_m_cv2_bn)
             from_to_map[named_m_cv1_bn] = fromlayer[f]
-            from_to_map[named_m_cv2_bn] = [named_m_cv1_bn]*4
+            from_to_map[named_m_cv2_bn] = [named_m_cv1_bn]*4 # 4分支concat
             fromlayer.append(named_m_cv2_bn)
         elif m is SPPF:
             named_m_cv1_bn = named_m_base+'.cv1.bn'
