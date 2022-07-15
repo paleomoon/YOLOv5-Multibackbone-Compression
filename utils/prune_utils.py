@@ -46,7 +46,7 @@ def parse_module_defs(d):
             c3fromlayer = [named_m_cv1_bn] # bottleneck from layer,cv1后接bottleneck
 
             # CBL_idx.append(named_m_cv1_bn)
-            ignore_idx.append(named_m_cv1_bn)
+            ignore_idx.append(named_m_cv1_bn) # C3中的cv1不剪枝
             CBL_idx.append(named_m_cv2_bn)
             CBL_idx.append(named_m_cv3_bn)
             for j in range(n):
@@ -57,7 +57,7 @@ def parse_module_defs(d):
                 c3fromlayer.append(named_m_bottle_cv2_bn) # ?
                 CBL_idx.append(named_m_bottle_cv1_bn)
                 # ignore_idx.append(named_m_bottle_cv1_bn)
-                ignore_idx.append(named_m_bottle_cv2_bn)  # not prune shortcut
+                ignore_idx.append(named_m_bottle_cv2_bn)  # not prune cv2 in bottleneck
             from_to_map[named_m_cv3_bn] = [c3fromlayer[-1], named_m_cv2_bn]
         elif m is Focus:
             named_m_bn = named_m_base+'.conv.bn' # focus最后是一个卷积
@@ -67,7 +67,7 @@ def parse_module_defs(d):
             named_m_cv1_bn = named_m_base+'.cv1.bn'
             named_m_cv2_bn = named_m_base+'.cv2.bn'
             CBL_idx.append(named_m_cv1_bn)
-            ignore_idx.append(named_m_cv2_bn)
+            ignore_idx.append(named_m_cv2_bn) # SPP中的cv2不剪枝
             from_to_map[named_m_cv1_bn] = fromlayer[f]
             from_to_map[named_m_cv2_bn] = [named_m_cv1_bn]*4 # 4分支concat
             fromlayer.append(named_m_cv2_bn)
@@ -75,7 +75,7 @@ def parse_module_defs(d):
             named_m_cv1_bn = named_m_base+'.cv1.bn'
             named_m_cv2_bn = named_m_base+'.cv2.bn'
             CBL_idx.append(named_m_cv1_bn)
-            ignore_idx.append(named_m_cv2_bn)
+            ignore_idx.append(named_m_cv2_bn) # SPPF中的cv2不剪枝
             from_to_map[named_m_cv1_bn] = fromlayer[f]
             from_to_map[named_m_cv2_bn] = [named_m_cv1_bn]*4
             fromlayer.append(named_m_cv2_bn)
