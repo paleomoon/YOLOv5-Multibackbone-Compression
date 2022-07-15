@@ -17,7 +17,7 @@ def parse_module_defs(d):
     anchors, nc, gd, gw = d['anchors'], d['nc'], d['depth_multiple'], d['width_multiple']
     na = (len(anchors[0]) // 2) if isinstance(anchors, list) else anchors  # number of anchors
     no = na * (nc + 5)  # number of outputs = anchors * (classes + 5)
-    fromlayer = []  # last module bn layer name
+    fromlayer = []  # 每层的最后一个bn名
     from_to_map = {} # key:to value:from
 
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):
@@ -29,7 +29,7 @@ def parse_module_defs(d):
                 pass
 
         n = max(round(n * gd), 1) if n > 1 else n  # depth gain
-        named_m_base = "model.{}".format(i)
+        named_m_base = "model.{}".format(i) # 层id
         if m is Conv:
             named_m_bn = named_m_base+'.bn'
             CBL_idx.append(named_m_bn)
@@ -43,7 +43,7 @@ def parse_module_defs(d):
             from_to_map[named_m_cv1_bn] = fromlayer[f] # cv1 cv2 from last layer
             from_to_map[named_m_cv2_bn] = fromlayer[f]
             fromlayer.append(named_m_cv3_bn) # add this layer
-            c3fromlayer = [named_m_cv1_bn] # bottleneck from layer,cv1后接bottleneck
+            c3fromlayer = [named_m_cv1_bn] # bottleneck from layer,也就是cv1, cv1后接bottleneck
 
             # CBL_idx.append(named_m_cv1_bn)
             ignore_idx.append(named_m_cv1_bn) # C3中的cv1不剪枝
